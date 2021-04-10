@@ -1,14 +1,12 @@
 library(tidyverse)
-#library(zoo)
 library(bfastSpatial)
 library(raster)
 library(lubridate)
 library(lemon)
-library(rstatix)
-library(plotrix)
 
 # ---------------Data wrangling--------------------------
 # Get the location of the file containing the NDVI time series exported from GEE
+# See GEE_ts.js file
 files <- list.files("GEE_csv/",
            "*.csv",
            full.names = T)
@@ -62,7 +60,7 @@ resul <- lapply(files, function(j){
     arrange(dates) %>%
     as.data.frame()
 
-
+  # Get NA percentage in time series by year
   napercentage <- df2 %>%
     # Transform the characters inside the dates column to Date format
     mutate_at(vars(dates), function(x) ymd(x)) %>%
@@ -102,7 +100,6 @@ resul <- lapply(files, function(j){
   colnames(df2) <- c("Time", paste0("NDVI",seq(1,(ncol(df2)-1))))
 
   # Apply bfmPixel to extract r2, magnitude, amplitude and stable historic period length
-  
   # Create rasters from ndvi time series
   img1 <- lapply(1:nrow(df2), function(i){
     raster(matrix(unlist(df2[i,2:ncol(df2)]),nrow = (ncol(df2)-1)))
@@ -158,7 +155,7 @@ resul <- lapply(files, function(j){
   # Convert list to data frame
   r2_df <- as.data.frame(r2_df) 
   
-  # Calculate mean and SE for r2 and r2 adj
+  # Unnest variables and add napercentage
   r2_df %>%
     t() %>%
     as_tibble() %>%
@@ -184,4 +181,6 @@ df4tests <- df_exp %>%
 df4tests %>%
   # Rescale magnitude and amplitde to 0-1 NDVI Values instead of 0 - 10 000
   mutate_at(vars(amplitude, magnitude), function(x) x /10000) %>%
+  # Change magnitude to absolute value
+  mutate_at(vars(magnitude), abs ) %>%
   write.csv("DF_logistic_reg.csv", row.names = F)
