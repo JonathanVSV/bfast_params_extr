@@ -2,7 +2,6 @@ library(tidyverse)
 library(bfastSpatial)
 library(raster)
 library(lubridate)
-library(lemon)
 
 # ---------------Data wrangling--------------------------
 # Get the location of the file containing the NDVI time series exported from GEE
